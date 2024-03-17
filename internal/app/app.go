@@ -5,7 +5,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"server/internal/config"
-	"server/internal/database"
+	initDb "server/internal/database/init"
 	"server/internal/transport/rest"
 )
 
@@ -18,7 +18,7 @@ func InitServer() {
 
 	db := config.GetInstance()
 	Db := db.Db
-	database.InitDb(Db)
+	initDb.InitDb(Db)
 	defer db.Db.Close()
 
 	rest.CreateRouter(Db)

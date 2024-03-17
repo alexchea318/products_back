@@ -1,4 +1,4 @@
-package database
+package initDb
 
 import (
 	"database/sql"
@@ -34,7 +34,7 @@ func InitDb(Db *sql.DB) {
 
 	// Checking of existing "admin"
 	var count int
-	err = Db.QueryRow("SELECT COUNT(*) FROM users WHERE username = ?", config.GetEnv(config.SuperAdminUsername)).Scan(&count)
+	err = Db.QueryRow("SELECT COUNT(1) FROM users WHERE username = ?", config.GetEnv(config.SuperAdminUsername)).Scan(&count)
 	if err != nil {
 		panic(err)
 	}

@@ -7,6 +7,7 @@ import (
 
 type UserTableActions interface {
 	GetOne(username string, password string) (models.User, error)
+	CheckIfExistByToken(token string) bool
 }
 
 type UsersTable struct {
@@ -23,4 +24,16 @@ func (u UsersTable) GetOne(username string, password string) (models.User, error
 	}
 
 	return user, nil
+}
+
+func (u UsersTable) GetOneByToken(token string) bool {
+	db := u.Db
+
+	count := 0
+	err := db.QueryRow("SELECT COUNT(1) FROM users WHERE token = ?", token).Scan(&count)
+	if err != nil || count == 0 {
+		return false
+	}
+
+	return true
 }

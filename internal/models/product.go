@@ -10,3 +10,9 @@ type Product struct {
 	Price       float64   `json:"price"`
 	CreatedAt   time.Time `json:"created_at"`
 }
+
+type NewProduct struct {
+	Name        string  `json:"name"`
+	Description string  `json:"description,omitempty"`
+	Price       float64 `json:"price"`
+}

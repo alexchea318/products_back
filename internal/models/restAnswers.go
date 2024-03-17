@@ -1,6 +1,6 @@
 package models
 
-type UnsignedResponse struct {
+type SuccessResponse struct {
 	Message interface{} `json:"msg"`
 }
 

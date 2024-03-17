@@ -3,6 +3,7 @@ package rest
 import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
+	"server/internal/config"
 	"server/internal/database"
 	"server/internal/services"
 	"server/internal/transport/rest/private"
@@ -12,22 +13,29 @@ import (
 func CreateRouter(Db *sql.DB) {
 	usersTable := database.UsersTable{Db: Db}
 	productsTable := database.ProductsTable{Db: Db}
+
+	jwtDbConnector := services.JwtDbConnector{UsersTable: usersTable}
 	publicRoutes := public.UserHandlers{UsersTable: usersTable}
 	privateRoutes := private.ProductHandlers{ProductsTable: productsTable}
 
+	ginMode := config.GetEnv(config.GinMode)
+	if ginMode == config.ReleaseMode {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	router := gin.New()
 	router.GET("/", publicRoutes.Index)
 	router.POST("/login", publicRoutes.Login)
 
 	privateRouter := router.Group("/products")
-	privateRouter.Use(services.JwtTokenCheck)
+	privateRouter.Use(jwtDbConnector.JwtTokenCheck)
 	privateRouter.POST("/", privateRoutes.CreateProduct)
-	//router.Use(AuthMiddleware())
-	/*	router.POST("/products", CreateProduct)
-		router.GET("/products", GetProducts)
-		router.GET("/products/:id", GetProduct)
-		router.PUT("/products/:id", UpdateProduct)
-		router.DELETE("/products/:id", DeleteProduct)
-		router.GET("/products/search", SearchProducts)*/
-	router.Run()
+	privateRouter.GET("/", privateRoutes.GetProducts)
+	privateRouter.PUT("/:id", privateRoutes.UpdateProduct)
+	privateRouter.GET("/:id", privateRoutes.GetProduct)
+	privateRouter.DELETE("/:id", privateRoutes.DeleteProduct)
+
+	err := router.Run(":" + config.GetEnv(config.GinPort))
+	if err != nil {
+		panic("[Error] failed to start Gin server due to: " + err.Error())
+	}
 }

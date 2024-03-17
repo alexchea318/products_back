@@ -18,7 +18,7 @@ type UserHandlers struct {
 }
 
 func (h UserHandlers) Index(c *gin.Context) {
-	c.JSON(http.StatusOK, models.UnsignedResponse{
+	c.JSON(http.StatusOK, models.SuccessResponse{
 		Message: "Hello! Current API version: 0.1",
 	})
 }
@@ -35,7 +35,7 @@ func (h UserHandlers) Login(c *gin.Context) {
 	user, err := h.UsersTable.GetOne(loginParams.Username, services.GetMD5Hash(loginParams.Password))
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.UnsignedResponse{
+		c.JSON(http.StatusInternalServerError, models.SuccessResponse{
 			Message: err.Error(),
 		})
 		return

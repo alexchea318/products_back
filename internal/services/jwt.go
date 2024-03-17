@@ -6,37 +6,25 @@ import (
 	"github.com/golang-jwt/jwt"
 	"net/http"
 	"server/internal/config"
+	"server/internal/database"
 	"server/internal/models"
-	"strings"
 	"time"
 )
 
-func extractBearerToken(header string) (string, error) {
-	if header == "" {
-		return "", errors.New("bad header value given")
-	}
-
-	jwtToken := strings.Split(header, " ")
-	if len(jwtToken) != 2 {
-		return "", errors.New("incorrectly formatted authorization header")
-	}
-
-	return jwtToken[1], nil
+type JwtDbMethods interface {
+	JwtTokenCheck(c *gin.Context)
 }
 
-func parseToken(jwtToken string) (*jwt.Token, error) {
-	token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
-		if _, OK := token.Method.(*jwt.SigningMethodHMAC); !OK {
-			return nil, errors.New("bad signed method received")
-		}
-		return []byte(config.GetEnv(config.JwtSecret)), nil
-	})
+type JwtDbConnector struct {
+	UsersTable database.UsersTable
+}
 
-	if err != nil {
-		return nil, errors.New("bad jwt token")
+func extractBearerToken(header string) (string, error) {
+	if header == "" {
+		return "", errors.New("no token in header")
 	}
 
-	return token, nil
+	return header, nil
 }
 
 func GenerateToken(username string, password string) (string, error) {
@@ -51,29 +39,23 @@ func GenerateToken(username string, password string) (string, error) {
 	return tokenStr, err
 }
 
-func JwtTokenCheck(c *gin.Context) {
-	jwtToken, err := extractBearerToken(c.GetHeader("Authorization"))
+func (j JwtDbConnector) JwtTokenCheck(c *gin.Context) {
+	jwtToken, err := extractBearerToken(c.GetHeader(config.GetEnv(config.AuthorizationHeader)))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, models.UnsignedResponse{
-			Message: err.Error(),
+		return
+	}
+
+	//TODO Необходимо валидировать токен перед запрсом к базе
+
+	//Check in DB
+	isUserExist := j.UsersTable.GetOneByToken(jwtToken)
+
+	if !isUserExist {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, models.SuccessResponse{
+			Message: "Invalid jwt token",
 		})
 		return
 	}
 
-	token, err := parseToken(jwtToken)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, models.UnsignedResponse{
-			Message: "bad jwt token",
-		})
-		return
-	}
-
-	_, OK := token.Claims.(jwt.MapClaims)
-	if !OK {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, models.UnsignedResponse{
-			Message: "unable to parse claims",
-		})
-		return
-	}
 	c.Next()
 }

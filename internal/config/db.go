@@ -14,7 +14,7 @@ var once sync.Once
 
 func GetInstance() *ServerDb {
 	once.Do(func() {
-		db, err := sql.Open("sqlite3", "./"+GetEnv(ServerDbName))
+		db, err := sql.Open(GetEnv(DbClient), GetEnv(ServerDbName))
 		if err != nil {
 			panic(err.Error())
 		}
