@@ -39,7 +39,9 @@ func (p ProductHandlers) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, product)
+	c.JSON(http.StatusCreated, models.SuccessResponse{
+		Message: product,
+	})
 }
 
 // GetProducts gets all products.

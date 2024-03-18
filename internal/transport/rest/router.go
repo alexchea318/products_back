@@ -23,10 +23,11 @@ func CreateRouter(Db *sql.DB) {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	router := gin.New()
-	router.GET("/", publicRoutes.Index)
-	router.POST("/login", publicRoutes.Login)
+	api := router.Group("/api")
+	api.GET("/", publicRoutes.Index)
+	api.POST("/login", publicRoutes.Login)
 
-	privateRouter := router.Group("/products")
+	privateRouter := api.Group("/products")
 	privateRouter.Use(jwtDbConnector.JwtTokenCheck)
 	privateRouter.POST("/", privateRoutes.CreateProduct)
 	privateRouter.GET("/", privateRoutes.GetProducts)

@@ -35,14 +35,13 @@ func (h UserHandlers) Login(c *gin.Context) {
 	user, err := h.UsersTable.GetOne(loginParams.Username, services.GetMD5Hash(loginParams.Password))
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.SuccessResponse{
-			Message: err.Error(),
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Error: err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SignedResponse{
-		Token:   user.Token,
-		Message: "Logged in",
+	c.JSON(http.StatusOK, models.SuccessResponse{
+		Message: user.Token,
 	})
 }

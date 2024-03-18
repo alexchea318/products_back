@@ -84,7 +84,7 @@ func (p ProductsTable) Get(search string, limit uint64, offset uint64) ([]models
 	var products []models.Product
 
 	// Search for products in the database.
-	rows, err := db.Query("SELECT * FROM products WHERE name LIKE ? LIMIT ? OFFSET ?", "%"+search+"%", limit, offset)
+	rows, err := db.Query("SELECT * FROM products WHERE name LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?", "%"+search+"%", limit, offset)
 	if err != nil {
 		return products, err
 	}
